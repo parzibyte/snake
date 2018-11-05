@@ -148,6 +148,7 @@ class Juego {
 		this.serpiente.push(new PedazoSerpiente());
 	}
 	dibujarSerpiente() {
+		// Aumentamos o reducimos en X e Y, y hacemos todos los cálculos necesarios
 		this.direccion = this.siguienteDireccion;
 		for (let x = this.serpiente.length - 1; x >= 1; x--) {
 			this.serpiente[x].x = this.serpiente[x - 1].x;
@@ -167,6 +168,11 @@ class Juego {
 				this.serpiente[0].y++;
 				break;
 		}
+		// Comprobamos si, antes de dibujar, la serpiente ya ha chocado
+		if (this.colisionaConAlgo()) {
+			console.log("A punto de chocar!");
+			return false;
+		}
 		for (let x = this.serpiente.length - 1; x >= 0; x--) {
 			this.canvasCtx.drawImage(
 				this._imagenes.cuadroVerde,
@@ -176,6 +182,7 @@ class Juego {
 				TAMANIO_SPRITES
 			);
 		}
+		return true;
 	}
 	comprobarSiSeTerminaronDeCargar() {
 		if (this.contadorImagenes === this.imagenesRequeridas) this.reiniciarJuego();
@@ -192,28 +199,34 @@ class Juego {
 			incrementoX = 0;
 		this.limpiarEscenario();
 		this.dibujarMatriz();
-		this.dibujarSerpiente();
-		if (this.matriz[this.serpiente[0].x][this.serpiente[0].y] === MANZANA) {
-			this.matriz[this.serpiente[0].x][this.serpiente[0].y] = NADA;
-			this.agregarPedazo();
-			this.ponerManzanaEnAlgunLugar();
-			this.velocidad += this.incrementoVelocidad;
-			setTimeout(() => {
-				this.dibujar();
-			}, this.velocidadInicial / this.velocidad);
-		} else if (
-			this.matriz[this.serpiente[0].x][this.serpiente[0].y] === PARED_ABAJO ||
+		let sePudoDibujarLaSerpiente = this.dibujarSerpiente();
+		if (sePudoDibujarLaSerpiente) {
+			if (this.matriz[this.serpiente[0].x][this.serpiente[0].y] === MANZANA) {
+				this.matriz[this.serpiente[0].x][this.serpiente[0].y] = NADA;
+				this.agregarPedazo();
+				this.ponerManzanaEnAlgunLugar();
+				this.velocidad += this.incrementoVelocidad;
+				setTimeout(() => {
+					this.dibujar();
+				}, this.velocidadInicial / this.velocidad);
+			} else {
+				setTimeout(() => {
+					this.dibujar();
+				}, this.velocidadInicial / this.velocidad);
+			}
+		} else {
+			alert("Perdiste");
+			// Entonces chocó
+			window.location.reload();
+
+		}
+
+	}
+	colisionaConAlgo() {
+		return this.matriz[this.serpiente[0].x][this.serpiente[0].y] === PARED_ABAJO ||
 			this.matriz[this.serpiente[0].x][this.serpiente[0].y] === PARED_ARRIBA ||
 			this.matriz[this.serpiente[0].x][this.serpiente[0].y] === PARED_DERECHA ||
 			this.matriz[this.serpiente[0].x][this.serpiente[0].y] === PARED_IZQUIERDA
-		) {
-			alert("Perdiste :'v");
-			juegoComenzado = false;
-		} else {
-			setTimeout(() => {
-				this.dibujar();
-			}, this.velocidadInicial / this.velocidad);
-		}
 	}
 	obtenerMatrizEscenario(altura = this.longitudY, anchura = this.longitudX) {
 		let matriz = [];
