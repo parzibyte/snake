@@ -322,18 +322,24 @@ document.addEventListener("DOMContentLoaded", () => {
 	$canvas.width = window.innerWidth;
 	$canvas.height = window.innerHeight;
 	var ctx = $canvas.getContext("2d");
-	ctx.font = "20px Comic Sans MS";
+	ctx.font = "20px Verdana";
 	ctx.fillStyle = "#ffffff";
 	ctx.textAlign = "center";
 	ctx.fillText(
-		"Toca o haz click para comenzar",
+		"Toca la pantalla, haz click en ella o presiona Enter para comenzar",
 		$canvas.width / 2,
 		$canvas.height / 2
+	);
+
+	ctx.fillText(
+		"Programado por @parzibyte. Visita: parzibyte.me :-)",
+		$canvas.width / 2,
+		($canvas.height / 2) + 30
 	);
 	document.addEventListener("keyup", evento => {
 		if (evento.keyCode === 13 && !juegoComenzado) new Juego();
 	});
 	$canvas.addEventListener("click", () => {
 		if (!juegoComenzado) new Juego();
-	})
+	});
 });
