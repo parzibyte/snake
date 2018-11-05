@@ -7,7 +7,7 @@ const NADA = 0,
 	PARED_DERECHA = 5,
 	PARED_ARRIBA = 6,
 	PARED_ABAJO = 7;
-
+let juegoComenzado = false;
 class PedazoSerpiente {
 	constructor(x = 10, y = 10) {
 		this.x = x;
@@ -31,43 +31,94 @@ class Juego {
 			cuadroVerde: "https://image.ibb.co/g4SURR/snake_pixel.png",
 			manzana: "https://image.ibb.co/gTiND6/snake_food.png",
 			raton: "https://image.ibb.co/e9jq0m/Greedy_Mouse_sprite.png",
-			piedra: "https://i.pinimg.com/originals/5b/6f/68/5b6f6866bd7c34733c6cb847df92b2f7.jpg"
+			piedra:
+				"https://image.ibb.co/e9jq0m/Greedy_Mouse_sprite.png"
 		};
 		this.contadorImagenes = 0;
 		this.imagenesRequeridas = 9;
-		this.serpiente = [new PedazoSerpiente(), new PedazoSerpiente(), new PedazoSerpiente()];
+		this.serpiente = [
+			new PedazoSerpiente(),
+			new PedazoSerpiente(),
+			new PedazoSerpiente()
+		];
 		this.canvas = document.querySelector("canvas");
 		this.canvasCtx = this.canvas.getContext("2d");
+		console.log("La anchura:", this.canvas.width);
+		console.log("La altura:", this.canvas.height);
 		this.longitudX = parseInt(this.canvas.width / TAMANIO_SPRITES);
 		this.longitudY = parseInt(this.canvas.height / TAMANIO_SPRITES);
-		console.log("longitudX", this.longitudX)
-		console.log("longitudY", this.longitudY)
-		
 		this.matriz = this.obtenerMatrizEscenario(this.longitudY, this.longitudX);
-		console.log(this.matriz);
-		this.velocidadInicial = 500;
+		this.velocidadInicial = 250;
 		this.velocidad = 1;
-		this.incrementoVelocidad = 0.5;
+		this.incrementoVelocidad = 0.05;
 		this.direcciones = {
 			derecha: 1,
 			izquierda: 2,
 			arriba: 3,
 			abajo: 4
 		};
+		this.siguienteDireccion = this.direcciones.derecha;
 		this.direccion = this.direcciones.derecha;
 		let dis = this;
-		
-		this._imagenes={};
-		for(let i in this.imagenes){
+
+		this._imagenes = {};
+		for (let i in this.imagenes) {
 			this._imagenes[i] = new Image();
 			this._imagenes[i].src = this.imagenes[i];
-			this._imagenes[i].addEventListener("load", () =>{
+			this._imagenes[i].addEventListener("load", () => {
 				dis.contadorImagenes++;
 				dis.comprobarSiSeTerminaronDeCargar();
 			});
 		}
 
-		$(document).keyup(evento => {
+		$("#canvas").click(evento => {
+			let x = evento.clientX,
+				y = evento.clientY,
+				tercioXCanvas = this.canvas.width / 3,
+				tercioYCanvas = this.canvas.height / 3;
+			if (x <= tercioXCanvas && y >= tercioYCanvas && y <= tercioYCanvas * 2) {
+				if (
+					dis.direccion === dis.direcciones.arriba ||
+					dis.direccion === dis.direcciones.abajo
+				)
+					dis.siguienteDireccion = dis.direcciones.izquierda;
+			} else if (
+				x >= tercioXCanvas * 2 &&
+				x <= tercioXCanvas * 3 &&
+				y >= tercioYCanvas &&
+				y <= tercioYCanvas * 2
+			) {
+				if (
+					dis.direccion === dis.direcciones.arriba ||
+					dis.direccion === dis.direcciones.abajo
+				)
+					dis.siguienteDireccion = dis.direcciones.derecha;
+			} else if (
+				x >= tercioXCanvas &&
+				x <= tercioXCanvas * 2 &&
+				y >= 0 &&
+				y <= tercioYCanvas
+			) {
+				if (
+					dis.direccion === dis.direcciones.derecha ||
+					dis.direccion === dis.direcciones.izquierda
+				)
+					dis.siguienteDireccion = dis.direcciones.arriba;
+			} else if (
+				x >= tercioXCanvas &&
+				x <= tercioXCanvas * 2 &&
+				y >= tercioYCanvas * 2 &&
+				y <= tercioYCanvas * 3
+			) {
+				if (
+					dis.direccion === dis.direcciones.derecha ||
+					dis.direccion === dis.direcciones.izquierda
+				)
+					dis.siguienteDireccion = dis.direcciones.abajo;
+			}
+		});
+
+		$(document).keydown(evento => {
 			let direccion = this.teclas[evento.keyCode];
 			if (direccion) {
 				if (
@@ -75,25 +126,21 @@ class Juego {
 						this.direccion === this.direcciones.izquierda) &&
 					(direccion === "arriba" || direccion === "abajo")
 				)
-					this.direccion = this.direcciones[direccion];
+					this.siguienteDireccion = this.direcciones[direccion];
 				else if (
 					(this.direccion === this.direcciones.arriba ||
 						this.direccion === this.direcciones.abajo) &&
 					(direccion === "derecha" || direccion === "izquierda")
 				)
-					this.direccion = this.direcciones[direccion];
+					this.siguienteDireccion = this.direcciones[direccion];
 			}
 		});
 	}
 	ponerManzanaEnAlgunLugar() {
-		
 		let x, y;
 		do {
-			x = Math.floor(Math.random() * (this.longitudX - 1 + 1) + 1);
-			y = Math.floor(Math.random() * (this.longitudY - 1 + 1) + 1);
-
-		console.log("x",x);
-		console.log("y",y);
+			x = Math.floor(Math.random() * (this.longitudX - 2 + 1) + 1);
+			y = Math.floor(Math.random() * (this.longitudY - 2 + 1) + 1);
 		} while (this.matriz[x][y] !== NADA);
 		this.matriz[x][y] = MANZANA;
 	}
@@ -101,6 +148,7 @@ class Juego {
 		this.serpiente.push(new PedazoSerpiente());
 	}
 	dibujarSerpiente() {
+		this.direccion = this.siguienteDireccion;
 		for (let x = this.serpiente.length - 1; x >= 1; x--) {
 			this.serpiente[x].x = this.serpiente[x - 1].x;
 			this.serpiente[x].y = this.serpiente[x - 1].y;
@@ -133,6 +181,7 @@ class Juego {
 		if (this.contadorImagenes === this.imagenesRequeridas) this.reiniciarJuego();
 	}
 	reiniciarJuego() {
+		juegoComenzado = true;
 		setTimeout(() => {
 			this.ponerManzanaEnAlgunLugar();
 			this.dibujar();
@@ -159,6 +208,7 @@ class Juego {
 			this.matriz[this.serpiente[0].x][this.serpiente[0].y] === PARED_IZQUIERDA
 		) {
 			alert("Perdiste :'v");
+			juegoComenzado = false;
 		} else {
 			setTimeout(() => {
 				this.dibujar();
@@ -166,8 +216,6 @@ class Juego {
 		}
 	}
 	obtenerMatrizEscenario(altura = this.longitudY, anchura = this.longitudX) {
-		console.log("altura", altura);
-		console.log("anchura", anchura);
 		let matriz = [];
 		for (let x = 0; x < anchura; x++) {
 			matriz.push([]);
@@ -248,20 +296,30 @@ class Juego {
 	limpiarEscenario() {
 		this.canvasCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
+	getStatus() {
+		return { matriz: this.matriz, serpiente: this.serpiente };
+	}
 }
 
-$(window).on("load", function() {
+$(window).on("load", function () {
 	let canvas = document.querySelector("canvas");
-		canvas.width  = document.body.clientWidth;
-		canvas.height  = document.body.clientHeight;
-	$(document).keyup((evento)=>{
-		if(evento.keyCode === 13) new Juego();
+	canvas.width = document.body.clientWidth;
+	canvas.height = document.body.clientHeight;
+	var ctx = canvas.getContext("2d");
+	ctx.font = "20px Comic Sans MS";
+	ctx.fillStyle = "#ffffff";
+	ctx.textAlign = "center";
+	ctx.fillText(
+		"Toca o haz click para comenzar",
+		canvas.width / 2,
+		canvas.height / 2
+	);
+	$(document).keyup(evento => {
+		if (evento.keyCode === 13 && !juegoComenzado) new Juego();
 	});
-	$(document).ready(()=>{
-		$(document).on("resize", () =>{
-			console.log("Cambiado tamaño")
-		})
-		let altura = $(document).height();
-		console.log(altura);
+
+	$("#canvas").click(() => {
+		console.log("juegoComenzado", juegoComenzado);
+		if (!juegoComenzado) new Juego();
 	});
 });
