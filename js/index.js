@@ -319,8 +319,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			return { matriz: this.matriz, serpiente: this.serpiente };
 		}
 	}
-	$canvas.width = document.body.clientWidth;
-	$canvas.height = document.body.clientHeight;
+	$canvas.width = window.innerWidth;
+	$canvas.height = window.innerHeight;
 	var ctx = $canvas.getContext("2d");
 	ctx.font = "20px Comic Sans MS";
 	ctx.fillStyle = "#ffffff";

@@ -1,8 +1,17 @@
 canvas{
 	background-color: #BFCB00;
 }
-html,body{
+
+html, body{
 	height: 100%;
 	width: 100%;
+}
+
+*{
+	margin: 0;
 	padding: 0;
+}
+
+#canvas{
+	display: block;
 }
