@@ -20,7 +20,7 @@ https://parzibyte.me/blog/2018/11/05/juego-serpiente-javascript-version-2/
 
 # Lista de futuras actualizaciones
 
- - [ ] Sonido al comer
+ - [x] Sonido al comer
  - [ ] Dibujar puntuación en pantalla
  - [ ] Cada N puntos,
        poner un premio grande

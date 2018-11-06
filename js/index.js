@@ -20,6 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 	class Juego {
 		constructor() {
+			// Por los prefijos de los navegadores
+			window.AudioContext = window.AudioContext || window.webkitAudioContext;
+			// Cargar el audio
+			this.bufferSonidoComerManzana = null;
+			this.cargarEfectosDeSonido();
 			this.teclas = {
 				"39": "derecha",
 				"37": "izquierda",
@@ -52,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			this.longitudX = parseInt(this.canvas.width / TAMANIO_SPRITES);
 			this.longitudY = parseInt(this.canvas.height / TAMANIO_SPRITES);
 			this.matriz = this.obtenerMatrizEscenario(this.longitudY, this.longitudX);
-			this.velocidadInicial = 250;
+			this.velocidadInicial = 100;
 			this.velocidad = 1;
 			this.incrementoVelocidad = 0.05;
 			this.direcciones = {
@@ -200,6 +205,41 @@ document.addEventListener("DOMContentLoaded", () => {
 				this.dibujar();
 			}, this.velocidadInicial / this.velocidad);
 		}
+		onManzanaComida() {
+			this.reproducirSonidoDeManzanaComida();
+			this.agregarPedazo();
+			this.aumentarVelocidad();
+			this.ponerManzanaEnAlgunLugar();
+		}
+		aumentarVelocidad() {
+			this.velocidad += this.incrementoVelocidad;
+		}
+
+		cargarEfectosDeSonido() {
+			var context = new AudioContext();
+			let peticion = new XMLHttpRequest(),
+				_this = this;
+			peticion.open('GET', "assets/apple-crunch-16.wav", true);
+			peticion.responseType = 'arraybuffer';
+
+			peticion.onload = function () {
+				context.decodeAudioData(peticion.response, function (buffer) {
+					_this.bufferSonidoComerManzana = buffer;
+				});
+			}
+			peticion.send();
+		}
+		reproducirSonidoDeManzanaComida() {
+			if (this.bufferSonidoComerManzana) {
+				var context = new AudioContext();
+				var source = context.createBufferSource();
+				source.buffer = this.bufferSonidoComerManzana;
+				source.connect(context.destination);
+				source.start(0);
+			} else {
+				console.log("No hay sonido")
+			}
+		}
 		dibujar() {
 			let incrementoY = 0,
 				incrementoX = 0;
@@ -209,9 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (sePudoDibujarLaSerpiente) {
 				if (this.matriz[this.serpiente[0].x][this.serpiente[0].y] === MANZANA) {
 					this.matriz[this.serpiente[0].x][this.serpiente[0].y] = NADA;
-					this.agregarPedazo();
-					this.ponerManzanaEnAlgunLugar();
-					this.velocidad += this.incrementoVelocidad;
+					this.onManzanaComida();
 					setTimeout(() => {
 						this.dibujar();
 					}, this.velocidadInicial / this.velocidad);
